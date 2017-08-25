@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using GlumOrigins.Common;
 using GlumOrigins.Common.Networking;
 using Lidgren.Network;
 

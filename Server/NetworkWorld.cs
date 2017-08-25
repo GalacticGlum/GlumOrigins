@@ -3,10 +3,11 @@ using GlumOrigins.Common.Game;
 using Newtonsoft.Json;
 using UnityUtilities.Math;
 using GlumOrigins.Common.Logging;
+using GlumOrigins.Server.Managers;
 
 namespace GlumOrigins.Server
 {
-    public class World
+    public class NetworkWorld
     {
         private WorldConfiguration configuration;
         public WorldConfiguration Configuration
@@ -27,12 +28,15 @@ namespace GlumOrigins.Server
         private readonly int width;
         private readonly int height;
 
-        public World()
+        private readonly ServerPlayerCharacterManager playerCharacterManager;
+
+        public NetworkWorld()
         {
             width = Configuration.Width;
             height = Configuration.Height;
 
             tiles = new Tile[width, height];
+            playerCharacterManager = new ServerPlayerCharacterManager();
 
             for (int x = 0; x < width; x++)
             {

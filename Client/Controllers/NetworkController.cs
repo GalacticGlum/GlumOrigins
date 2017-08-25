@@ -1,31 +1,37 @@
-﻿using UnityEngine;
+﻿using GlumOrigins.Common.Networking;
+using Lidgren.Network;
 using Logger = GlumOrigins.Common.Logging.Logger;
 
 namespace GlumOrigins.Client.Controllers
 {
-    public class NetworkController : MonoBehaviour
+    public class NetworkController
     {
         public static NetworkController Instance { get; private set; }
-        public GameClient Client { get; private set; }
+        public GameClient Client { get; }
 
-        [Header("Connection Settings")]
-        [SerializeField]
-        private string ipAddress;
-        [SerializeField]
-        private int port;
-
-        private void OnEnable()
+        public NetworkController()
         {
             Logger.Initialize(true);
 
             Instance = this;
             Client = new GameClient();
-            Client.Connect(ipAddress, port);
         }
 
-        private void Update()
+        public void Update()
         {
             Client.Listen();
+        }
+
+        public void Login(string name)
+        {
+            Packet packet = Client.CreatePacket(ClientOutgoingPacketType.SendLogin);
+            packet.Write(name);
+            Client.Send(packet, NetDeliveryMethod.ReliableUnordered);
+        }
+
+        public void Connect(string ipAddress, int port)
+        {
+            Client.Connect(ipAddress, port);
         }
     }
 }

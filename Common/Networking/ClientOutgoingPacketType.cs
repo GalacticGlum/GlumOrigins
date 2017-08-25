@@ -5,6 +5,7 @@
     /// </summary>
     public enum ClientOutgoingPacketType
     {
-        RequestWorldConfiguration
+        RequestWorldConfiguration,
+        SendLogin
     }
 }

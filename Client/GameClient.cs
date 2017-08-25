@@ -1,5 +1,4 @@
-﻿using GlumOrigins.Common;
-using GlumOrigins.Common.Networking;
+﻿using GlumOrigins.Common.Networking;
 using Lidgren.Network;
 
 namespace GlumOrigins.Client

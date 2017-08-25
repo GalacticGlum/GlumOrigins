@@ -5,6 +5,9 @@
     /// </summary>
     public enum ServerOutgoingPacketType
     {
-        SendWorldConfiguration
+        SendWorldConfiguration,
+        SendNewPlayer,
+        SendAllPlayers,
+        SendPlayerDisconnect
     }
 }

@@ -1,32 +1,30 @@
-﻿using GlumOrigins.Common;
-using GlumOrigins.Common.Game;
+﻿using GlumOrigins.Common.Game;
 using GlumOrigins.Common.Networking;
 using Newtonsoft.Json;
-using UnityEngine;
-using Logger = GlumOrigins.Common.Logging.Logger;
 
 namespace GlumOrigins.Client.Controllers
 {
-    public class WorldController : MonoBehaviour
+    public class WorldController 
     {
-        public WorldConfiguration Configuration { get; private set; }
+        public static WorldController Instance { get; private set; }
+        public World World { get; }
 
-        private void Start()
+        public WorldController()
         {
+            World = new World();
+            Instance = this;
+
+            // Request world config from the server when the client connects.
+            NetworkController.Instance.Client.PeerConnected += (sender, args) => NetworkController.Instance.Client.Send(ClientOutgoingPacketType.RequestWorldConfiguration);
             NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendWorldConfiguration] += HandleWorldData;
         }
 
         private void HandleWorldData(object sender, PacketRecievedEventArgs args)
         {
-            Configuration = JsonConvert.DeserializeObject<WorldConfiguration>(args.Buffer.ReadString());
+            WorldConfiguration configuration = JsonConvert.DeserializeObject<WorldConfiguration>(args.Buffer.ReadString());
+            World.Initialize(configuration);
 
-            Logger.Log(Configuration.Width);
-            Logger.Log(Configuration.Height);
-        }
-
-        public void RequestWorldData()
-        {
-            NetworkController.Instance.Client.Send(ClientOutgoingPacketType.RequestWorldConfiguration);
+            NetworkController.Instance.Login("temp_name");
         }
     }
 }

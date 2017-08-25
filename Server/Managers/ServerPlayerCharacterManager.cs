@@ -37,16 +37,15 @@ namespace GlumOrigins.Server.Managers
 
             int id = playerCharacters.Count + 1;
             string name = args.Buffer.ReadString();
-            Create(args.SenderConnection, id, name, new Tile(Vector2i.Zero));
+            Create(args.SenderConnection, id, name, new Tile(new Vector2i(0, id)));
 
             Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendNewPlayer);
             packet.Write(id);
             packet.Write(name);
-            packet.Write(0);
-            packet.Write(id);
+            packet.Write(playerCharacters[args.SenderConnection].Tile.Position.X);
+            packet.Write(playerCharacters[args.SenderConnection].Tile.Position.Y);
 
-            CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableUnordered);
-
+            CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableOrdered);
             SendAllPlayers();
         }
 
@@ -54,10 +53,12 @@ namespace GlumOrigins.Server.Managers
         {
             Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendAllPlayers);
             packet.Write(playerCharacters.Count); // The amount of players we are sending, basically how much we'll loop for (to read).
-            for (int i = 0; i < playerCharacters.Count - 1; i++)
+            foreach (PlayerCharacter playerCharacter in playerCharacters.Values)
             {
-                //packet.Write();
+                packet.Write(playerCharacter);
             }
+
+            CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableOrdered);
         }
 
         public void Create(NetConnection connection, int id, string name, Tile tile)

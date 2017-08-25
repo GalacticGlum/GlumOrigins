@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using GlumOrigins.Client.Controllers;
 using GlumOrigins.Common.Game;
+using GlumOrigins.Common.Logging;
 using GlumOrigins.Common.Networking;
 using UnityUtilities.Math;
 
@@ -29,6 +30,20 @@ namespace GlumOrigins.Client.Managers
             playerCharacters = new Dictionary<int, PlayerCharacter>();
             NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendNewPlayer] += HandleNewPlayer;
             NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendPlayerDisconnect] += HandlePlayerDisconnect;
+            NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendAllPlayers] += HandleAllPlayers;
+        }
+
+        private void HandleAllPlayers(object sender, PacketRecievedEventArgs args)
+        {
+            int count = args.Buffer.ReadInt32() - 1;
+            for (int i = 0; i < count; i++)
+            {
+                Logger.Log(i);
+                PlayerCharacter character = args.Buffer.Read<PlayerCharacter>();
+                Logger.Log(character.Id);
+                if (playerCharacters.ContainsKey(character.Id)) return;
+                Create(character);
+            }
         }
 
         private void HandlePlayerDisconnect(object sender, PacketRecievedEventArgs args)
@@ -52,11 +67,19 @@ namespace GlumOrigins.Client.Managers
             Create(id, name, new Tile(new Vector2i(x, y)));
         }
 
-        public void Create(int id, string name, Tile tile)
+        private void Create(int id, string name, Tile tile)
         {
+            if (playerCharacters.ContainsKey(id)) return;
             PlayerCharacter playerCharacter = new PlayerCharacter(id, name, tile);
             playerCharacters.Add(playerCharacter.Id, playerCharacter);
 
+            OnCreated(playerCharacter);
+        }
+
+        private void Create(PlayerCharacter playerCharacter)
+        {
+            if (playerCharacters.ContainsKey(playerCharacter.Id)) return;
+            playerCharacters.Add(playerCharacter.Id, playerCharacter);
             OnCreated(playerCharacter);
         }
 

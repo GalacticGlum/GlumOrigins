@@ -27,6 +27,7 @@ namespace GlumOrigins.Common.Networking
 
         public void Write(IPEndPoint endPoint) => OutgoingMessage.Write(endPoint);
         public void Write(NetBuffer buffer) => OutgoingMessage.Write(buffer);
+        public void Write<T>(INetworked<T> networkedObject) where T : INetworked<T>, new() => networkedObject.Serialize(OutgoingMessage);
 
         public void WriteTime(bool highPrecision = false) => OutgoingMessage.WriteTime(highPrecision);
         public void WriteTime(double time, bool highPrecision = false) => OutgoingMessage.WriteTime(time, highPrecision);
@@ -47,8 +48,25 @@ namespace GlumOrigins.Common.Networking
 
         public bool ReadBoolean() => OutgoingMessage.ReadBoolean();
         public string ReadString() => OutgoingMessage.ReadString();
+        public T Read<T>() where T : INetworked<T>, new() 
+        {
+            T result = new T();
+            result.Deserialize(OutgoingMessage);
+            return result;
+        }
 
         public IPEndPoint ReadIPEndPoint() => OutgoingMessage.ReadIPEndPoint();
         public double ReadTime(NetConnection connection, bool highPrecision = false) => OutgoingMessage.ReadTime(connection, highPrecision);
+    }
+
+    public static class PacketExtensions
+    {
+        public static void Write<T>(this NetBuffer buffer, INetworked<T> networkedObject) where T : INetworked<T>, new() => networkedObject.Serialize(buffer);
+        public static T Read<T>(this NetBuffer buffer) where T : INetworked<T>, new()
+        {
+            T result = new T();
+            result.Deserialize(buffer);
+            return result;
+        }
     }
 }

@@ -53,7 +53,7 @@ namespace GlumOrigins.Client
         public Tile GetTileAt(int x, int y) => GetTileAt(new Vector2i(x, y));
         public Tile GetTileAt(Vector2i position)
         {
-            if (position.X < 0 || position.X >= Width || position.Y < 0 || position.Y >= Height) throw new ArgumentOutOfRangeException(position.ToString());
+            if (position.X < 0 || position.X >= Width || position.Y < 0 || position.Y >= Height) return null;
             return tiles[position.X, position.Y];
         }
     }

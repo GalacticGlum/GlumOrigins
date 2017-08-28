@@ -14,10 +14,16 @@ namespace GlumOrigins.Common.Game
         }
     }
 
-    public struct Tile : INetworked<Tile>
+    public class Tile : INetworked<Tile>
     {
         public Vector2i Position { get; private set; }
-        public Tile(Vector2i position) : this()
+
+        public Tile()
+        {
+            Position = new Vector2i(-1);
+        }
+
+        public Tile(Vector2i position) 
         {
             Position = position;
         }

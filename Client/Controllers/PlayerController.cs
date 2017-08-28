@@ -13,9 +13,10 @@ namespace GlumOrigins.Client
     {
         private static Dictionary<int, PlayerController> playerControllers;
 
-        private const float MovementDuration = 1;
+        private const float MovementDuration = 0.25f;
         private LerpInformation<Vector3> movementLerpInformation;
         private int playerId;
+        private bool canMove;
 
         public static void Initialize()
         {
@@ -26,22 +27,43 @@ namespace GlumOrigins.Client
         private void Start()
         {
             playerControllers.Add(playerId, this);
+            canMove = true;
         }
 
         private void Update()
         {
-            if ((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && playerId == World.Current.PlayerCharacterManager.ControllableCharacterId)
+            HandleInput();
+            HandleMovement();
+        }
+
+        private void HandleInput()
+        {
+            if (playerId != World.Current.PlayerCharacterManager.ControllableCharacterId || canMove == false) return;
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             {
-                SendMovement(MovementDirection.North);       
+                SendMovement(MovementDirection.North);
             }
 
-            HandleMovement();
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            {
+                SendMovement(MovementDirection.South);
+            }
+
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                SendMovement(MovementDirection.East);
+            }
+
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                SendMovement(MovementDirection.West);
+            }
         }
 
         private void SendMovement(MovementDirection direction)
         {
             Vector2i playerPosition = (Vector2)transform.position;
-            Tile destination = new Tile(playerPosition);
+            Tile destination = null;
 
             switch (direction)
             {
@@ -60,7 +82,7 @@ namespace GlumOrigins.Client
             }
             
             // TODO: "Predict" validation.
-            if (destination.Position == playerPosition) return;
+            if (destination == null) return;
 
             World.Current.PlayerCharacterManager.ClientPlayerCharacter.Tile = destination;
             Packet packet = NetworkController.Instance.Client.CreatePacket(ClientOutgoingPacketType.SendMovement);
@@ -74,7 +96,13 @@ namespace GlumOrigins.Client
         private void Move(Vector3 target)
         {
             movementLerpInformation = new LerpInformation<Vector3>(transform.position, target, MovementDuration, Vector3.Lerp);
-            movementLerpInformation.Finished += (sender, args) => movementLerpInformation = null;
+            canMove = false;
+
+            movementLerpInformation.Finished += (sender, args) =>
+            {
+                movementLerpInformation = null;
+                canMove = true;
+            };
         }
 
         private void HandleMovement()

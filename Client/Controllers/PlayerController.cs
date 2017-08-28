@@ -123,7 +123,6 @@ namespace GlumOrigins.Client
             if (!playerControllers.ContainsKey(id)) return;
 
             Tile tile = args.Buffer.Read<Tile>();
-            Logger.Log(tile.Position);
 
             World.Current.PlayerCharacterManager[id].Tile = tile;
             playerControllers[id].Move((Vector2)tile.Position);

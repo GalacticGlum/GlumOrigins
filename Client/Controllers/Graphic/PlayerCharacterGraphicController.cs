@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using GlumOrigins.Client.Messaging;
+using GlumOrigins.Client.UI;
 using GlumOrigins.Common.Game;
 using UnityEngine;
 
@@ -35,6 +37,8 @@ namespace GlumOrigins.Client.Controllers.Graphic
             playerCharacterGameObject.transform.SetParent(playerCharactersParent);
 
             PlayerController.Attach(args.PlayerCharacter.Id, playerCharacterGameObject);
+
+            MessageChannel<PlayerNameDisplayCreateMessage>.Broadcast(new PlayerNameDisplayCreateMessage(playerCharacterGameObject, args.PlayerCharacter));
 
             SpriteRenderer spriteRenderer = playerCharacterGameObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = Resources.Load<Sprite>("Characters/_DefaultPlayer");

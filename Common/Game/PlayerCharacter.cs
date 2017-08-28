@@ -5,6 +5,8 @@ using Lidgren.Network;
 namespace GlumOrigins.Common.Game
 {
     public delegate void PlayerCharacterEventHandler(object sender, PlayerCharacterEventArgs args);
+    public delegate void PlayerCharacterMovedEventHandler(object sender, PlayerCharacterMovedEventArgs args);
+
     public class PlayerCharacterEventArgs : EventArgs
     {
         public PlayerCharacter PlayerCharacter { get; }
@@ -14,11 +16,41 @@ namespace GlumOrigins.Common.Game
         }
     }
 
+    public class PlayerCharacterMovedEventArgs : EventArgs
+    {
+        public PlayerCharacter PlayerCharacter { get; }
+        public Tile NewTile { get; }
+        public Tile OldTile { get; }
+
+        public PlayerCharacterMovedEventArgs(PlayerCharacter playerCharacter, Tile newTile, Tile oldTile)
+        {
+            PlayerCharacter = playerCharacter;
+            NewTile = newTile;
+            OldTile = oldTile;
+        }
+    }
+
     public class PlayerCharacter : INetworked<PlayerCharacter>
     {
         public int Id { get; private set; }
         public string Name { get; private set; }
-        public Tile Tile { get; set; }
+
+        private Tile tile;
+        public Tile Tile
+        {
+            get => tile;
+            set
+            {
+                Tile oldTile = tile;
+                tile = value;
+
+                if(tile == oldTile) return;
+                OnMoved(oldTile);
+            }
+        }
+
+        public event PlayerCharacterMovedEventHandler Moved;
+        private void OnMoved(Tile oldTile) => Moved?.Invoke(this, new PlayerCharacterMovedEventArgs(this, Tile, oldTile));
 
         public PlayerCharacter()
         {

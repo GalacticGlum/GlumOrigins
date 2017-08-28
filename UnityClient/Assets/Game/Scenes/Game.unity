@@ -117,6 +117,8 @@ GameObject:
   m_Component:
   - component: {fileID: 306313162}
   - component: {fileID: 306313163}
+  - component: {fileID: 306313164}
+  - component: {fileID: 306313165}
   m_Layer: 0
   m_Name: _Controllers
   m_TagString: Untagged
@@ -150,6 +152,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ipAddress: 127.0.0.1
   port: 7777
+--- !u!114 &306313164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 306313161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1042397965, guid: bcbd1015de3873147ba9ef0bd58e1a6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &306313165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 306313161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 969dc8db558d014489dcaed93fd9c8d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1213981720
 GameObject:
   m_ObjectHideFlags: 0

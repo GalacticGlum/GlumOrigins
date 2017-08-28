@@ -6,6 +6,8 @@ namespace GlumOrigins.Client.Controllers.Graphic
 {
     public class PlayerCharacterGraphicController 
     {
+        public GameObject ClientPlayerGameObject { get; private set; }
+
         private readonly Transform playerCharactersParent;
         private readonly Dictionary<int, GameObject> playerCharacterGameObjects;
  
@@ -20,22 +22,31 @@ namespace GlumOrigins.Client.Controllers.Graphic
 
         private void OnPlayerRemoved(object sender, PlayerCharacterEventArgs args)
         {
-            if (!playerCharacterGameObjects.ContainsKey(args.Character.Id)) return;
-            playerCharacterGameObjects.Remove(args.Character.Id);
-            Object.Destroy(playerCharacterGameObjects[args.Character.Id]);
+            if (!playerCharacterGameObjects.ContainsKey(args.PlayerCharacter.Id)) return;
+
+            Object.Destroy(playerCharacterGameObjects[args.PlayerCharacter.Id]);
+            playerCharacterGameObjects.Remove(args.PlayerCharacter.Id);
         }
 
         private void OnPlayerCreated(object sender, PlayerCharacterEventArgs args)
         {
-            GameObject playerCharacterGameObject = new GameObject($"PlayerCharacter_{args.Character.Id}_{args.Character.Name}");
-            playerCharacterGameObject.transform.position = (Vector2)args.Character.Tile.Position;
+            GameObject playerCharacterGameObject = new GameObject($"PlayerCharacter_{args.PlayerCharacter.Id}_{args.PlayerCharacter.Name}");
+            playerCharacterGameObject.transform.position = (Vector2)args.PlayerCharacter.Tile.Position;
             playerCharacterGameObject.transform.SetParent(playerCharactersParent);
+
+            PlayerController.Attach(args.PlayerCharacter.Id, playerCharacterGameObject);
 
             SpriteRenderer spriteRenderer = playerCharacterGameObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = Resources.Load<Sprite>("Characters/_DefaultPlayer");
             spriteRenderer.sortingLayerName = "Characters";
 
-            playerCharacterGameObjects.Add(args.Character.Id, playerCharacterGameObject);
+            if (args.PlayerCharacter.IsClientPlayer())
+            {
+                ClientPlayerGameObject = playerCharacterGameObject;
+                spriteRenderer.color = Color.red;
+            }
+
+            playerCharacterGameObjects.Add(args.PlayerCharacter.Id, playerCharacterGameObject);
         }
     }
 }

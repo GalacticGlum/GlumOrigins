@@ -6,6 +6,7 @@
     public enum ClientOutgoingPacketType
     {
         RequestWorldConfiguration,
-        SendLogin
+        SendLogin,
+        SendMovement
     }
 }

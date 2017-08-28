@@ -10,9 +10,12 @@ namespace GlumOrigins.Common.Networking
     public class ConnectionEventArgs : EventArgs
     {
         public NetConnection Connection { get; }
-        public ConnectionEventArgs(NetConnection connection)
+        public NetBuffer Buffer { get; }
+
+        public ConnectionEventArgs(NetConnection connection, NetBuffer buffer)
         {
             Connection = connection;
+            Buffer = buffer;
         }
     }
 
@@ -87,10 +90,10 @@ namespace GlumOrigins.Common.Networking
                     switch (message.SenderConnection.Status)
                     {
                         case NetConnectionStatus.Connected:
-                            OnConnected(new ConnectionEventArgs(message.SenderConnection));
+                            OnConnected(new ConnectionEventArgs(message.SenderConnection, message));
                             break;
                         case NetConnectionStatus.Disconnected:
-                            OnDisconnected(new ConnectionEventArgs(message.SenderConnection));
+                            OnDisconnected(new ConnectionEventArgs(message.SenderConnection, message));
                             break;
                     }
                     break;

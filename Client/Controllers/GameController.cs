@@ -23,6 +23,7 @@ namespace GlumOrigins.Client.Controllers
             worldController =  new WorldController();
             tileGraphicController = new TileGraphicController();
             playerCharacterGraphicController = new PlayerCharacterGraphicController();
+            PlayerController.Initialize();
 
             networkController.Connect(ipAddress, port);
         }

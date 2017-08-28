@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using GlumOrigins.Common.Game;
 using GlumOrigins.Common.Logging;
@@ -11,24 +10,46 @@ namespace GlumOrigins.Server.Managers
 {
     public sealed class ServerPlayerCharacterManager : IEnumerable<PlayerCharacter>
     {
-        private readonly Dictionary<NetConnection, PlayerCharacter> playerCharacters;
+        private readonly Dictionary<NetConnection, int> playerConnections;
+        private readonly Dictionary<int, PlayerCharacter> playerCharacters;
 
         public ServerPlayerCharacterManager()
         {
-            playerCharacters = new Dictionary<NetConnection, PlayerCharacter>();
+            playerConnections = new Dictionary<NetConnection, int>();
+            playerCharacters = new Dictionary<int, PlayerCharacter>();
+
             CoreApp.Server.Packets[ClientOutgoingPacketType.SendLogin] += HandleLogin;
-            CoreApp.Server.PeerDisconnected += HandlePlayerDisconnect;
+            CoreApp.Server.Packets[ClientOutgoingPacketType.SendMovement] += HandleMovement;
+            CoreApp.Server.PeerDisconnected += HandlePlayerDisconnect;  
+        }
+
+        private void HandleMovement(object sender, PacketRecievedEventArgs args)
+        {
+            int id = args.Buffer.ReadInt32();
+            if (!playerCharacters.ContainsKey(id)) return;
+
+            Tile destination = args.Buffer.Read<Tile>();
+            playerCharacters[id].Tile = destination;
+
+            Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.UpdatePlayerPositions);
+            packet.Write(id);
+            packet.Write(destination);
+            CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableUnordered);
         }
 
         private void HandlePlayerDisconnect(object sender, ConnectionEventArgs args)
         {
-            if (!playerCharacters.ContainsKey(args.Connection)) return;
+            if (!playerConnections.ContainsKey(args.Connection)) return;
+
+            int id = playerConnections[args.Connection];
+            if (!playerCharacters.ContainsKey(id)) return;
 
             Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendPlayerDisconnect);
-            packet.Write(playerCharacters[args.Connection].Id);
+            packet.Write(id);
             CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableUnordered);
 
-            playerCharacters.Remove(args.Connection);
+            playerCharacters.Remove(id);
+            playerConnections.Remove(args.Connection);
         }
 
         private void HandleLogin(object sender, PacketRecievedEventArgs args)
@@ -42,29 +63,30 @@ namespace GlumOrigins.Server.Managers
             Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendNewPlayer);
             packet.Write(id);
             packet.Write(name);
-            packet.Write(playerCharacters[args.SenderConnection].Tile.Position.X);
-            packet.Write(playerCharacters[args.SenderConnection].Tile.Position.Y);
+            packet.Write(playerCharacters[id].Tile.Position.X);
+            packet.Write(playerCharacters[id].Tile.Position.Y);
 
             CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableOrdered);
-            SendAllPlayers();
+            SendAllPlayers(args.SenderConnection);
         }
 
-        private void SendAllPlayers()
+        private void SendAllPlayers(NetConnection target)
         {
-            Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendAllPlayers);
+            Packet packet = CoreApp.Server.CreatePacket(ServerOutgoingPacketType.SendPlayerList);
             packet.Write(playerCharacters.Count); // The amount of players we are sending, basically how much we'll loop for (to read).
             foreach (PlayerCharacter playerCharacter in playerCharacters.Values)
             {
                 packet.Write(playerCharacter);
             }
 
-            CoreApp.Server.SendToAll(packet, NetDeliveryMethod.ReliableOrdered);
+            CoreApp.Server.Send(packet, target, NetDeliveryMethod.ReliableOrdered);
         }
 
         public void Create(NetConnection connection, int id, string name, Tile tile)
         {
-            if (playerCharacters.ContainsKey(connection)) return;
-            playerCharacters.Add(connection, new PlayerCharacter(id, name, tile));
+            if (playerCharacters.ContainsKey(id)) return;
+            playerCharacters.Add(id, new PlayerCharacter(id, name, tile));
+            playerConnections.Add(connection, id);
         }
 
         public IEnumerator<PlayerCharacter> GetEnumerator()

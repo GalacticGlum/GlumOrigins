@@ -7,7 +7,8 @@
     {
         SendWorldConfiguration,
         SendNewPlayer,
-        SendAllPlayers,
-        SendPlayerDisconnect
+        SendPlayerList,
+        SendPlayerDisconnect,
+        UpdatePlayerPositions
     }
 }

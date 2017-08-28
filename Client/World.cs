@@ -1,4 +1,5 @@
-﻿using GlumOrigins.Client.Managers;
+﻿using System;
+using GlumOrigins.Client.Managers;
 using GlumOrigins.Common.Game;
 using UnityUtilities.Math;
 
@@ -8,6 +9,8 @@ namespace GlumOrigins.Client
 
     public class World
     {
+        public static World Current { get; private set; }
+
         public WorldConfiguration Configuration { get; private set; }
         public ClientPlayerCharacterManager PlayerCharacterManager { get; }
         public int Width { get; private set; }
@@ -23,6 +26,7 @@ namespace GlumOrigins.Client
 
         public World()
         {
+            Current = this;
             PlayerCharacterManager = new ClientPlayerCharacterManager();
         }
 
@@ -44,6 +48,13 @@ namespace GlumOrigins.Client
                     OnTileCreated(tileAt);
                 }
             }
+        }
+
+        public Tile GetTileAt(int x, int y) => GetTileAt(new Vector2i(x, y));
+        public Tile GetTileAt(Vector2i position)
+        {
+            if (position.X < 0 || position.X >= Width || position.Y < 0 || position.Y >= Height) throw new ArgumentOutOfRangeException(position.ToString());
+            return tiles[position.X, position.Y];
         }
     }
 }

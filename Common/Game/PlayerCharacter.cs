@@ -1,17 +1,16 @@
 ﻿using System;
 using GlumOrigins.Common.Networking;
 using Lidgren.Network;
-using UnityEngine;
 
 namespace GlumOrigins.Common.Game
 {
     public delegate void PlayerCharacterEventHandler(object sender, PlayerCharacterEventArgs args);
     public class PlayerCharacterEventArgs : EventArgs
     {
-        public PlayerCharacter Character { get; }
-        public PlayerCharacterEventArgs(PlayerCharacter character)
+        public PlayerCharacter PlayerCharacter { get; }
+        public PlayerCharacterEventArgs(PlayerCharacter playerCharacter)
         {
-            Character = character;
+            PlayerCharacter = playerCharacter;
         }
     }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using GlumOrigins.Client.Controllers;
 using GlumOrigins.Common.Game;
@@ -11,6 +10,10 @@ namespace GlumOrigins.Client.Managers
 {
     public sealed class ClientPlayerCharacterManager : IEnumerable<PlayerCharacter>
     {
+        public int ControllableCharacterId { get; private set; } = -1;
+        public PlayerCharacter ClientPlayerCharacter => playerCharacters[ControllableCharacterId];
+        public PlayerCharacter this[int id] => !playerCharacters.ContainsKey(id) ? null : playerCharacters[id];
+
         public event PlayerCharacterEventHandler Created;
         private void OnCreated(PlayerCharacter character)
         {
@@ -30,7 +33,7 @@ namespace GlumOrigins.Client.Managers
             playerCharacters = new Dictionary<int, PlayerCharacter>();
             NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendNewPlayer] += HandleNewPlayer;
             NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendPlayerDisconnect] += HandlePlayerDisconnect;
-            NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendAllPlayers] += HandleAllPlayers;
+            NetworkController.Instance.Client.Packets[ServerOutgoingPacketType.SendPlayerList] += HandleAllPlayers;
         }
 
         private void HandleAllPlayers(object sender, PacketRecievedEventArgs args)
@@ -50,7 +53,7 @@ namespace GlumOrigins.Client.Managers
         {
             int id = args.Buffer.ReadInt32();
             if (!playerCharacters.ContainsKey(id)) return;
-
+            
             PlayerCharacter playerCharacter = playerCharacters[id];
             playerCharacters.Remove(id);
 
@@ -64,9 +67,14 @@ namespace GlumOrigins.Client.Managers
             int x = args.Buffer.ReadInt32();
             int y = args.Buffer.ReadInt32();
 
+            if (ControllableCharacterId < 0)
+            {
+                ControllableCharacterId = id;
+            }
+
             Create(id, name, new Tile(new Vector2i(x, y)));
         }
-
+        
         private void Create(int id, string name, Tile tile)
         {
             if (playerCharacters.ContainsKey(id)) return;
@@ -81,6 +89,11 @@ namespace GlumOrigins.Client.Managers
             if (playerCharacters.ContainsKey(playerCharacter.Id)) return;
             playerCharacters.Add(playerCharacter.Id, playerCharacter);
             OnCreated(playerCharacter);
+        }
+
+        public bool IsClientPlayer(PlayerCharacter a)
+        {
+            return a.Id == ControllableCharacterId;
         }
 
         public IEnumerator<PlayerCharacter> GetEnumerator()

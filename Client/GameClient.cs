@@ -25,7 +25,7 @@ namespace GlumOrigins.Client
 
         public void Disconnect()
         {
-            NetPeer.Disconnect("");
+            NetPeer.Disconnect(string.Empty);
         }
             
         public void Send(Packet packet, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable) => 
